@@ -3,6 +3,7 @@ library(tidyverse)
 library(geosphere)
 library(purrr)
 library(feather)
+library(lubridate)
 
 # load data
 # data = readRDS("data/data.RDS")
@@ -34,7 +35,7 @@ shinyServer(function(input, output) {
   
   # Select Ship Name
   output$ship_name <- renderUI({
-    if(input$ship_type ==""){
+    if(is.null(input$ship_type)){
       selectInput(
         inputId = "ship_name", 
         label = "SHIP NAME:",
@@ -51,41 +52,107 @@ shinyServer(function(input, output) {
     }
   })
   
-  # reactive measure distance
-  longest_distance <- eventReactive(input$calculate,{
-    # filter the data
-    data = data %>% filter(ship_type == .env$input$ship_type & SHIPNAME == .env$input$ship_name) %>% 
-      # sort the data
-      arrange(SHIP_ID,DATETIME) %>% 
-      # preparing additional variable
-      mutate(LON_lag = lag(LON)) %>% 
-      mutate(LAT_lag = lag(LAT)) %>% 
-      # measure the distance
-      mutate(distance = get_geo_distance(LON,LAT,LON_lag,LAT_lag))
+  # Observe if the input is NULL
+  # observeEvent(input$calculate, {
+  #   if (input$ship_type == "" | input$ship_name==""){
+  #     create_modal(modal(
+  #       id = "input-error",
+  #       header = h2("INPUT ERROR"),
+  #       "Please select SHIP TYPE and SHIP NAME"
+  #     ))
+  #   }
+  # })
+  
+  # initial map with reactiveVal
+  longest_distance <- reactiveVal(
+    data
+  )
+  
+  observeEvent(input$calculate,{
     
-    data_max = data %>% filter(distance == max(distance,na.rm=T)) %>% tail(1) %>% 
-      select(LON,LAT,SHIPNAME,ship_type,SHIPNAME,LON_lag,LAT_lag,distance)
+      if (input$ship_type == "" | input$ship_name ==""){
+        create_modal(modal(
+          id = "input-error",
+          header = h2("INPUT ERROR"),
+          "Please select SHIP TYPE and SHIP NAME"
+        ))
+        
+        longest_distance(data)
+        
+      } else {
+        data = data %>% filter(ship_type == .env$input$ship_type & SHIPNAME == .env$input$ship_name) %>% 
+          mutate(DATETIME=ymd_hms(DATETIME)) %>%
+          # sort the data
+          arrange(SHIP_ID,DATETIME) %>% 
+          # preparing additional variable
+          mutate(LON_lag = lag(LON)) %>% 
+          mutate(LAT_lag = lag(LAT)) %>% 
+          mutate(DATETIME_lag = lag(DATETIME)) %>% 
+          # measure the distance
+          mutate(distance = get_geo_distance(LON,LAT,LON_lag,LAT_lag))
+        
+        longest_distance(data)
+      }
+   
   })
+  
+  
+  #longest distance Reactive Val
+  
+  # initiating data max
+  data_max_initiate <- data.frame(
+    LON = numeric(),
+    LAT = numeric(),
+    SHIPNAME = character(),
+    ship_type = character(),
+    LON_lag = numeric(),
+    LAT_lag = numeric(),
+    distance = numeric(),
+    DATETIME = as.Date(character()),
+    DATETIME_lag = as.Date(character()))
+  
+  longest_distance_calc <- reactiveVal(
+    data_max_initiate
+  )
+  
+  observeEvent(input$calculate,{
+    if (input$ship_type == "" | input$ship_name ==""){
+      # create_modal(modal(
+      #   id = "input-error",
+      #   header = h2("INPUT ERROR"),
+      #   "Please select SHIP TYPE and SHIP NAME"
+      # ))
+      
+      longest_distance_calc(data_max_initiate)
+    } else {
+      data_max = longest_distance() %>% filter(distance == max(distance,na.rm=T)) %>% tail(1) %>% 
+        select(LON,LAT,SHIPNAME,ship_type,LON_lag,LAT_lag,distance,DATETIME,DATETIME_lag)
+      
+      longest_distance_calc(data_max)
+    }
+    
+  })
+  
+  
   
   # Map Output
   output$mymap <- renderLeaflet({
-    data_selected <- longest_distance()
+    data_selected <- longest_distance_calc()
     
     LON = c(data_selected$LON,data_selected$LON_lag)
     LAT = c(data_selected$LAT,data_selected$LAT_lag)
     Loc = c("End Point","Starting Point")
     
     data_plot_map = data.frame(LON,LAT)
-
-    leaflet() %>%
-      addProviderTiles(providers$OpenStreetMap,
-                       options = providerTileOptions(noWrap = TRUE)
-      ) %>%
-      addMarkers(data = data_plot_map)
+    
+    leaflet(longest_distance()) %>% addTiles() %>%
+      addMarkers(data = data_plot_map) %>% 
+      fitBounds(~min(LON)-0.005, ~min(LAT)-0.005, ~max(LON)+0.005, ~max(LAT)+0.005)
+    
   })
   
   output$table_out <- renderTable({
-    longest_distance() %>% select(LON,LAT,SHIPNAME,ship_type,distance) %>% as_tibble %>% rename_with(toupper)
+    longest_distance_calc() %>% select(LON,LAT,SHIPNAME,ship_type,distance) %>% as_tibble %>% rename_with(toupper)
   })
 
 })

@@ -1,27 +1,21 @@
-
 library(shiny)
 library(shiny.semantic)
 library(leaflet)
 
-# Define UI for application that draws a histogram
+# Define UI for application that call longest distance on a sequence of ships movement
 shinyUI(semanticPage(
 
     # Application title
-    titlePanel("Ships Data"),
+    title = "SHIP DASHBOARD",
+    tags$label("ENTER SHIP TYPE AND SHIP NAME"),
+    p(),
+    htmlOutput("ship_type"),
+    htmlOutput("ship_name"),
+    br(),
+    actionButton("calculate","CALCULATE"),
+    p(),
+    leafletOutput("mymap"),
+    br(),
+    tableOutput("table_out")
 
-    # Sidebar with a slider input for number of bins
-    sidebarLayout(
-        
-        sidebarPanel(
-            htmlOutput("ship_type"),
-            htmlOutput("ship_name"),
-            p(),
-            actionButton("calculate","CALCULATE")
-            ),
-        # Show a plot of the generated distribution
-        mainPanel(
-            leafletOutput("mymap"),
-            tableOutput("table_out")
-        )
-    )
 ))
