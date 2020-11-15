@@ -19,7 +19,7 @@ get_geo_distance = function(long1, lat1, long2, lat2) {
   distance_m
 }
 
-# Define server logic required to draw a histogram
+# Define server logic
 shinyServer(function(input, output) {
   
   # Select Ship Type
