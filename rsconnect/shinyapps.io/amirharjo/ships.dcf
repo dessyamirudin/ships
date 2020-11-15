@@ -1,0 +1,10 @@
+name: ships
+title:
+username:
+account: amirharjo
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3232624
+bundleId: 3860576
+url: https://amirharjo.shinyapps.io/ships/
+when: 1605374002.64308
