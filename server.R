@@ -5,8 +5,8 @@ library(purrr)
 library(feather)
 
 # load data
-data = readRDS("data/data.RDS")
-# data = feather::read_feather("data/data.feather")
+# data = readRDS("data/data.RDS")
+data = feather::read_feather("data/data.feather")
 
 # function to measure distance with input as vector
 get_geo_distance = function(long1, lat1, long2, lat2) {
