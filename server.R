@@ -52,7 +52,7 @@ shinyServer(function(input, output) {
     }
   })
   
-  # initial map with reactiveVal
+  # initiate data to draw map with reactiveVal
   longest_distance <- reactiveVal(
     data
   )
@@ -103,7 +103,7 @@ shinyServer(function(input, output) {
     data_max_initiate
   )
   
-  # update value maximum distance
+  # update maximum distance value
   observeEvent(input$calculate,{
     if (input$ship_type == "" | input$ship_name ==""){
       
