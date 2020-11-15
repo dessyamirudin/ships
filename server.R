@@ -21,7 +21,6 @@ get_geo_distance = function(long1, lat1, long2, lat2) {
 
 # Define server logic
 shinyServer(function(input, output) {
-  
   # Select Ship Type
   output$ship_type <- renderUI({
     selectInput(
@@ -30,7 +29,6 @@ shinyServer(function(input, output) {
       choices = c("",sort(unique(data$ship_type))) #,
       #selected = sort(unique(data$ship_type))[1]
       )
-    
   })
   
   # Select Ship Name
@@ -57,8 +55,8 @@ shinyServer(function(input, output) {
     data
   )
   
+  # observe trigger event to update the initial map
   observeEvent(input$calculate,{
-    
       if (input$ship_type == "" | input$ship_name ==""){
         create_modal(modal(
           id = "input-error",
@@ -82,7 +80,6 @@ shinyServer(function(input, output) {
         
         longest_distance(data)
       }
-   
   })
   
   
@@ -106,15 +103,12 @@ shinyServer(function(input, output) {
   # update maximum distance value
   observeEvent(input$calculate,{
     if (input$ship_type == "" | input$ship_name ==""){
-      
       longest_distance_calc(data_max_initiate)
     } else {
       data_max = longest_distance() %>% filter(distance == max(distance,na.rm=T)) %>% tail(1) %>% 
         select(LON,LAT,SHIPNAME,ship_type,LON_lag,LAT_lag,distance,DATETIME,DATETIME_lag)
-      
       longest_distance_calc(data_max)
-    }
-    
+    } 
   })
   
   # Map Output
@@ -130,11 +124,9 @@ shinyServer(function(input, output) {
     leaflet(longest_distance()) %>% addTiles() %>%
       addMarkers(data = data_plot_map) %>% 
       fitBounds(~min(LON)-0.005, ~min(LAT)-0.005, ~max(LON)+0.005, ~max(LAT)+0.005)
-    
   })
   
   output$table_out <- renderTable({
     longest_distance_calc() %>% select(LON,LAT,SHIPNAME,ship_type,distance) %>% as_tibble %>% rename_with(toupper)
   })
-
 })
