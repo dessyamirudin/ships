@@ -52,17 +52,6 @@ shinyServer(function(input, output) {
     }
   })
   
-  # Observe if the input is NULL
-  # observeEvent(input$calculate, {
-  #   if (input$ship_type == "" | input$ship_name==""){
-  #     create_modal(modal(
-  #       id = "input-error",
-  #       header = h2("INPUT ERROR"),
-  #       "Please select SHIP TYPE and SHIP NAME"
-  #     ))
-  #   }
-  # })
-  
   # initial map with reactiveVal
   longest_distance <- reactiveVal(
     data
@@ -97,9 +86,8 @@ shinyServer(function(input, output) {
   })
   
   
-  #longest distance Reactive Val
-  
-  # initiating data max
+  # initiate longest distance final calculation using reactiveVal
+  # initiating default value
   data_max_initiate <- data.frame(
     LON = numeric(),
     LAT = numeric(),
@@ -115,13 +103,9 @@ shinyServer(function(input, output) {
     data_max_initiate
   )
   
+  # update value maximum distance
   observeEvent(input$calculate,{
     if (input$ship_type == "" | input$ship_name ==""){
-      # create_modal(modal(
-      #   id = "input-error",
-      #   header = h2("INPUT ERROR"),
-      #   "Please select SHIP TYPE and SHIP NAME"
-      # ))
       
       longest_distance_calc(data_max_initiate)
     } else {
@@ -132,8 +116,6 @@ shinyServer(function(input, output) {
     }
     
   })
-  
-  
   
   # Map Output
   output$mymap <- renderLeaflet({
