@@ -51,7 +51,7 @@ shinyServer(function(input, output) {
   })
   
   # initiate data to draw map with reactiveVal
-  longest_distance <- reactiveVal(
+  data_selected <- reactiveVal(
     data
   )
   
@@ -64,7 +64,7 @@ shinyServer(function(input, output) {
           "Please select SHIP TYPE and SHIP NAME"
         ))
         
-        longest_distance(data)
+        data_selected(data)
         
       } else {
         data = data %>% filter(ship_type == .env$input$ship_type & SHIPNAME == .env$input$ship_name) %>% 
@@ -78,7 +78,7 @@ shinyServer(function(input, output) {
           # measure the distance
           mutate(distance = get_geo_distance(LON,LAT,LON_lag,LAT_lag))
         
-        longest_distance(data)
+        data_selected(data)
       }
   })
   
@@ -105,7 +105,7 @@ shinyServer(function(input, output) {
     if (input$ship_type == "" | input$ship_name ==""){
       longest_distance_calc(data_max_initiate)
     } else {
-      data_max = longest_distance() %>% filter(distance == max(distance,na.rm=T)) %>% tail(1) %>% 
+      data_max = data_selected() %>% filter(distance == max(distance,na.rm=T)) %>% tail(1) %>% 
         select(LON,LAT,SHIPNAME,ship_type,LON_lag,LAT_lag,distance,DATETIME,DATETIME_lag)
       longest_distance_calc(data_max)
     } 
@@ -121,7 +121,7 @@ shinyServer(function(input, output) {
     
     data_plot_map = data.frame(LON,LAT)
     
-    leaflet(longest_distance()) %>% addTiles() %>%
+    leaflet(data_selected()) %>% addTiles() %>%
       addMarkers(data = data_plot_map) %>% 
       fitBounds(~min(LON)-0.005, ~min(LAT)-0.005, ~max(LON)+0.005, ~max(LAT)+0.005)
   })
