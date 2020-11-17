@@ -122,7 +122,7 @@ shinyServer(function(input, output) {
     data_plot_map = data.frame(LON,LAT)
     
     leaflet(data_selected()) %>% addTiles() %>%
-      addMarkers(data = data_plot_map) %>% 
+      addMarkers(data = data_plot_map,label=Loc) %>% 
       fitBounds(~min(LON)-0.005, ~min(LAT)-0.005, ~max(LON)+0.005, ~max(LAT)+0.005)
   })
   
